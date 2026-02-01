@@ -1,0 +1,30 @@
+{
+  "branding": {
+    "backgroundUrl": null,
+    "logoUrl": null,
+    "primaryColorHex": "#FFD700"
+  },
+  "sections": [
+    {
+      "id": "configuracion",
+      "title": "Configuración del Sistema",
+      "type": "SETTINGS",
+      "items": [
+        {
+          "id": "settings_wifi",
+          "title": "WiFi / Red",
+          "imageUrl": null,
+          "actionType": "SYSTEM_INTENT",
+          "actionData": "android.settings.WIFI_SETTINGS"
+        },
+        {
+          "id": "settings_bluetooth",
+          "title": "Bluetooth",
+          "imageUrl": null,
+          "actionType": "SYSTEM_INTENT",
+          "actionData": "android.settings.BLUETOOTH_SETTINGS"
+        }
+      ]
+    }
+  ]
+}

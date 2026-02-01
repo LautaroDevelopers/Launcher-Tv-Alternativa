@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Cuando tiene foco: borde azul grueso + glow azul -->
+    <item android:state_focused="true">
+        <layer-list>
+            <!-- Glow azul exterior -->
+            <item android:left="-8dp" android:top="-8dp" android:right="-8dp" android:bottom="-8dp">
+                <shape android:shape="rectangle">
+                    <solid android:color="#5064B5F6" />
+                    <corners android:radius="16dp" />
+                </shape>
+            </item>
+            <!-- Segundo nivel de glow más intenso -->
+            <item android:left="-4dp" android:top="-4dp" android:right="-4dp" android:bottom="-4dp">
+                <shape android:shape="rectangle">
+                    <solid android:color="#7064B5F6" />
+                    <corners android:radius="12dp" />
+                </shape>
+            </item>
+            <!-- Borde azul brillante -->
+            <item>
+                <shape android:shape="rectangle">
+                    <stroke android:width="4dp" android:color="#64B5F6" />
+                    <corners android:radius="8dp" />
+                    <solid android:color="@android:color/transparent" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+    
+    <!-- Estado normal: sin efectos -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/transparent" />
+            <corners android:radius="8dp" />
+        </shape>
+    </item>
+</selector>

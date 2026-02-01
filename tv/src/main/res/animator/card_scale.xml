@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <set>
+            <objectAnimator
+                android:propertyName="scaleX"
+                android:valueTo="1.05"
+                android:duration="150" />
+            <objectAnimator
+                android:propertyName="scaleY"
+                android:valueTo="1.05"
+                android:duration="150" />
+            <objectAnimator
+                android:propertyName="translationZ"
+                android:valueTo="12dp"
+                android:duration="150" />
+        </set>
+    </item>
+    <item>
+        <set>
+            <objectAnimator
+                android:propertyName="scaleX"
+                android:valueTo="1.0"
+                android:duration="150" />
+            <objectAnimator
+                android:propertyName="scaleY"
+                android:valueTo="1.0"
+                android:duration="150" />
+            <objectAnimator
+                android:propertyName="translationZ"
+                android:valueTo="0dp"
+                android:duration="150" />
+        </set>
+    </item>
+</selector>

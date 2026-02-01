@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.leanback.widget.ImageCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="280dp"
+    android:layout_height="158dp"
+    android:layout_margin="16dp"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    app:cardType="infoUnder"
+    app:infoAreaBackground="@android:color/transparent"
+    android:background="@android:color/transparent"
+    android:stateListAnimator="@animator/card_scale">
+
+    <!-- El contenido (icono) se pondrá desde el Presenter -->
+
+</androidx.leanback.widget.ImageCardView>

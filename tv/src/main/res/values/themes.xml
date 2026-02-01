@@ -1,0 +1,16 @@
+<resources>
+    <style name="Theme.Launcher" parent="@style/Theme.Leanback">
+        <!-- Estilo custom para los Headers de las filas -->
+        <item name="rowHeaderStyle">@style/CustomRowHeaderStyle</item>
+    </style>
+
+    <!-- Estilo del Header de las filas -->
+    <style name="CustomRowHeaderStyle" parent="Widget.Leanback.Header">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:paddingStart">10dp</item>
+        <item name="android:paddingTop">24dp</item>
+        <item name="android:paddingBottom">8dp</item>
+    </style>
+</resources>

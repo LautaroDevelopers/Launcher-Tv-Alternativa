@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Permite compartir archivos del cache interno (donde guardamos el APK) -->
+    <cache-path
+        name="apk_cache"
+        path="/" />
+</paths>

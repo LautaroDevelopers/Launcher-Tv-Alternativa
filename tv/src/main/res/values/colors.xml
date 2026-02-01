@@ -1,0 +1,48 @@
+<resources>
+    <!-- LAUNCHER TV - Paleta Azul Moderno (Android TV / Google TV style) -->
+    
+    <!-- Fondos oscuros -->
+    <color name="black">#0D1117</color>
+    <color name="black_light">#161B22</color>
+    <color name="black_card">#21262D</color>
+    
+    <!-- Azul principal (acento) -->
+    <color name="primary">#2196F3</color>
+    <color name="primary_light">#64B5F6</color>
+    <color name="primary_dark">#1976D2</color>
+    
+    <!-- Alias para compatibilidad (reemplaza gold) -->
+    <color name="gold">@color/primary</color>
+    <color name="gold_light">@color/primary_light</color>
+    <color name="gold_dark">@color/primary_dark</color>
+    
+    <!-- Acentos secundarios -->
+    <color name="accent_cyan">#00BCD4</color>
+    <color name="accent_teal">#009688</color>
+    <color name="accent_green">#4CAF50</color>
+    <color name="accent_red">#F44336</color>
+    
+    <!-- UI Elements -->
+    <color name="card_background">#21262D</color>
+    <color name="card_background_focused">#30363D</color>
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#8B949E</color>
+    
+    <!-- Shadow/Glow (efecto focus estilo Google TV) -->
+    <color name="shadow_focused">#802196F3</color>
+    <color name="shadow_normal">#00000000</color>
+    
+    <!-- Fondos de dialogs y superficies -->
+    <color name="surface">#161B22</color>
+    <color name="surface_elevated">#21262D</color>
+    <color name="divider">#30363D</color>
+    
+    <!-- Legacy (compatibilidad) -->
+    <color name="background_gradient_start">#0D1117</color>
+    <color name="background_gradient_end">#161B22</color>
+    <color name="fastlane_background">#0D1117</color>
+    <color name="search_opaque">@color/primary</color>
+    <color name="selected_background">@color/primary</color>
+    <color name="default_background">#21262D</color>
+    <color name="transparent">#00000000</color>
+</resources>
