@@ -44,6 +44,7 @@ class UpdateDialogFragment : DialogFragment() {
     
     private val mainHandler = Handler(Looper.getMainLooper())
     private var isDownloading = false
+    private var isInstalling = false  // Flag para no borrar APK mientras se instala
     
     companion object {
         private const val TAG = "UpdateDialogFragment"
@@ -201,6 +202,8 @@ class UpdateDialogFragment : DialogFragment() {
                 // Instalar
                 val success = UpdateInstaller.installApk(requireContext(), state.apkFile)
                 if (success) {
+                    // Marcar que estamos instalando para NO borrar el APK en onDismiss
+                    isInstalling = true
                     // El sistema muestra el instalador, el dialog se cierra
                     dismiss()
                 } else {
@@ -244,8 +247,9 @@ class UpdateDialogFragment : DialogFragment() {
 
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
-        // Limpiar APK descargado si no se instaló
-        if (!isDownloading) {
+        // Limpiar APK descargado SOLO si no se está instalando
+        // Si isInstalling=true, el instalador del sistema todavía necesita el archivo
+        if (!isDownloading && !isInstalling) {
             downloader.deleteDownloadedApk()
         }
     }
