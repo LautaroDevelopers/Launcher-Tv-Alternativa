@@ -4,9 +4,6 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <!-- `BLUETOOTH` para versiones viejas, `BLUETOOTH_CONNECT` para nuevas -->
-    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
-    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     
     <!-- CRITICO: Sin esto no podés ver las apps instaladas en Android 11+ -->
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
@@ -27,6 +24,10 @@
     <uses-feature
         android:name="android.software.leanback"
         android:required="true" />
+    <!-- Bluetooth es OPCIONAL - muchos TV Box no lo tienen -->
+    <uses-feature
+        android:name="android.hardware.bluetooth"
+        android:required="false" />
 
     <application
         android:allowBackup="true"
