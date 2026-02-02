@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">LauncherTv</string>
+    <string name="app_name">TV Alternativa</string>
     <string name="browse_title">Television Alternativa</string>
     <string name="related_movies">Related Videos</string>
     <string name="grid_view">Grid View</string>
@@ -16,4 +16,7 @@
     <!-- Error messages -->
     <string name="error_fragment_message">An error occurred</string>
     <string name="dismiss_error">Dismiss</string>
+
+    <!-- Accessibility Service -->
+    <string name="accessibility_service_description">Permite abrir el panel de configuración rápida desde cualquier aplicación usando el botón del control remoto.</string>
 </resources>

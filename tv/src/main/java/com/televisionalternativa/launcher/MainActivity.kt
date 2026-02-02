@@ -1,5 +1,6 @@
 package com.televisionalternativa.launcher
 
+import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
@@ -7,14 +8,18 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
+import android.view.KeyEvent
 import android.view.View
+import android.view.accessibility.AccessibilityManager
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import com.televisionalternativa.launcher.data.AppScanner
+import com.televisionalternativa.launcher.permissions.PermissionsDialogFragment
 import com.televisionalternativa.launcher.update.AboutLauncherDialogFragment
 import com.televisionalternativa.launcher.update.UpdateCheckResult
 import com.televisionalternativa.launcher.update.UpdateChecker
@@ -24,10 +29,8 @@ import com.televisionalternativa.launcher.update.UpdateRepository
 /** Loads [MainFragment]. */
 class MainActivity : FragmentActivity() {
 
-  private lateinit var wifiButton: LinearLayout
-  private lateinit var wifiIcon: ImageView
-  private lateinit var wifiText: TextView
-  private lateinit var settingsButton: LinearLayout
+  private lateinit var wifiStatusIcon: ImageView
+  private lateinit var settingsButton: ImageView
   private lateinit var systemInfoChip: LinearLayout
   private lateinit var versionTextView: TextView
 
@@ -39,8 +42,7 @@ class MainActivity : FragmentActivity() {
   private var currentVersionName: String = "1.0.0"
 
   /**
-   * NetworkCallback moderno (API 21+) - reemplaza el BroadcastReceiver deprecado. Recibe
-   * notificaciones cuando cambia el estado de la red.
+   * NetworkCallback moderno (API 21+) - reemplaza el BroadcastReceiver deprecado.
    */
   private val networkCallback =
           object : ConnectivityManager.NetworkCallback() {
@@ -73,14 +75,11 @@ class MainActivity : FragmentActivity() {
     connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
     // Inicializar sistema de actualizaciones
-    // TODO: Reemplazar con tu usuario/repo de GitHub
     updateChecker = UpdateChecker(this, GITHUB_OWNER, GITHUB_REPO)
     updateRepository = UpdateRepository(this)
 
     // Bindear views del header
-    wifiButton = findViewById(R.id.wifi_status_icon)
-    wifiIcon = findViewById(R.id.wifi_icon)
-    wifiText = findViewById(R.id.wifi_text)
+    wifiStatusIcon = findViewById(R.id.wifi_status_icon)
     settingsButton = findViewById(R.id.settings_button)
     systemInfoChip = findViewById(R.id.system_info_chip)
     versionTextView = findViewById(R.id.version_text)
@@ -94,37 +93,16 @@ class MainActivity : FragmentActivity() {
       systemInfoChip.visibility = View.GONE
     }
 
-    // Listener para el chip de información del sistema
+    // Listener para el chip de versión → abre About Launcher
     systemInfoChip.setOnClickListener {
-      Log.d(TAG, "System Info Chip Clicked - Opening About Launcher dialog")
+      Log.d(TAG, "System Info Chip Clicked - Opening About Launcher")
       showAboutLauncherDialog()
     }
 
-    // Botón WiFi → abre configuración de redes
-    wifiButton.setOnClickListener {
-      try {
-        val intent = Intent(android.provider.Settings.ACTION_WIFI_SETTINGS)
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        startActivity(intent)
-      } catch (e: Exception) {
-        Log.e(TAG, "Could not open wifi settings", e)
-        try {
-          startActivity(Intent(android.provider.Settings.ACTION_SETTINGS))
-        } catch (e2: Exception) {
-          Log.e(TAG, "Could not open any settings", e2)
-        }
-      }
-    }
-
-    // Botón Ajustes → abre configuración general del sistema
+    // Listener para el botón de settings → abre panel lateral
     settingsButton.setOnClickListener {
-      try {
-        val intent = Intent(android.provider.Settings.ACTION_SETTINGS)
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        startActivity(intent)
-      } catch (e: Exception) {
-        Log.e(TAG, "Could not open settings", e)
-      }
+      Log.d(TAG, "Settings Button Clicked - Opening Settings Panel")
+      showSettingsPanel()
     }
 
     if (savedInstanceState == null) {
@@ -137,8 +115,11 @@ class MainActivity : FragmentActivity() {
 
   override fun onResume() {
     super.onResume()
+    
+    // Debug: ver si llegamos desde un intent especial
+    Log.d(TAG, "onResume - intent action: ${intent?.action}, extras: ${intent?.extras}")
 
-    // Registrar NetworkCallback para escuchar cambios de conectividad
+    // Registrar NetworkCallback
     val networkRequest =
             NetworkRequest.Builder()
                     .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
@@ -148,66 +129,164 @@ class MainActivity : FragmentActivity() {
     // Actualizar estado inicial
     updateNetworkStatus(isConnected = isNetworkAvailable())
 
+    // Chequear si venimos del overlay con acción específica
+    handleOverlayIntent()
+
+    // Chequear permisos necesarios para el overlay global
+    checkAndRequestPermissions()
+
     // Chequear actualizaciones
     checkForUpdates()
   }
 
+  override fun onNewIntent(intent: Intent?) {
+    super.onNewIntent(intent)
+    setIntent(intent)
+    Log.d(TAG, "onNewIntent - action: ${intent?.action}, extras: ${intent?.extras}")
+  }
+
+  /**
+   * Maneja intents que vienen del SettingsOverlayService.
+   */
+  private fun handleOverlayIntent() {
+    val openAbout = intent?.getBooleanExtra(EXTRA_OPEN_ABOUT, false) ?: false
+    if (openAbout) {
+      Log.d(TAG, "Opening About Launcher from overlay intent")
+      // Limpiar el extra para que no se vuelva a abrir
+      intent?.removeExtra(EXTRA_OPEN_ABOUT)
+      showAboutLauncherDialog()
+    }
+  }
+
+  /**
+   * Chequea si tiene los permisos necesarios para el overlay global.
+   * Si no los tiene, muestra el modal obligatorio.
+   */
+  private fun checkAndRequestPermissions() {
+    val hasOverlayPermission = Settings.canDrawOverlays(this)
+    val hasAccessibilityPermission = isAccessibilityServiceEnabled()
+
+    Log.d(TAG, "Permissions check - Overlay: $hasOverlayPermission, Accessibility: $hasAccessibilityPermission")
+
+    if (!hasOverlayPermission || !hasAccessibilityPermission) {
+      // Solo mostrar si no está ya visible
+      if (supportFragmentManager.findFragmentByTag(PERMISSIONS_DIALOG_TAG) == null) {
+        Log.d(TAG, "Showing permissions dialog")
+        val dialog = PermissionsDialogFragment.newInstance()
+        dialog.show(supportFragmentManager, PERMISSIONS_DIALOG_TAG)
+      }
+    }
+  }
+
+  /**
+   * Verifica si el AccessibilityService está habilitado.
+   */
+  private fun isAccessibilityServiceEnabled(): Boolean {
+    val am = getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
+    val enabledServices = am.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
+    
+    val myServiceName = "${packageName}/.service.GlobalKeyService"
+    val myServiceNameAlt = "${packageName}/com.televisionalternativa.launcher.service.GlobalKeyService"
+    
+    for (service in enabledServices) {
+      val serviceId = service.id
+      if (serviceId == myServiceName || serviceId == myServiceNameAlt || serviceId.contains("GlobalKeyService")) {
+        Log.d(TAG, "AccessibilityService is enabled: $serviceId")
+        return true
+      }
+    }
+    
+    Log.d(TAG, "AccessibilityService is NOT enabled")
+    return false
+  }
+
   override fun onPause() {
     super.onPause()
-    // Desregistrar para evitar leaks de memoria
     connectivityManager.unregisterNetworkCallback(networkCallback)
   }
 
-  /** Verifica si hay conexión a internet usando la API moderna. */
+  /**
+   * Intercepta TODAS las teclas antes de que lleguen a los views.
+   */
+  override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+    if (event.action == KeyEvent.ACTION_DOWN) {
+      Log.d(TAG, "dispatchKeyEvent: keyCode=${event.keyCode}, scanCode=${event.scanCode}")
+      
+      // Botón TV_INPUT (178) abre el panel
+      if (event.keyCode == KeyEvent.KEYCODE_TV_INPUT) {
+        showSettingsPanel()
+        return true
+      }
+    }
+    return super.dispatchKeyEvent(event)
+  }
+
+  /**
+   * Backup: algunos eventos llegan acá.
+   */
+  override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+    Log.d(TAG, "onKeyDown: keyCode=$keyCode")
+    if (keyCode == KeyEvent.KEYCODE_TV_INPUT) {
+      showSettingsPanel()
+      return true
+    }
+    return super.onKeyDown(keyCode, event)
+  }
+
+  /** Verifica si hay conexión a internet. */
   private fun isNetworkAvailable(): Boolean {
     val network = connectivityManager.activeNetwork ?: return false
     val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
     return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
   }
 
-  /** Actualiza el icono y texto de WiFi según el estado de conexión. */
+  /** Actualiza el icono de WiFi según el estado de conexión. */
   private fun updateNetworkStatus(isConnected: Boolean) {
     if (isConnected) {
       Log.d(TAG, "Network is Connected")
-      wifiIcon.setImageResource(R.drawable.ic_wifi)
-      wifiIcon.setColorFilter(ContextCompat.getColor(this, R.color.primary))
-      wifiText.text = "WiFi"
-      wifiText.setTextColor(ContextCompat.getColor(this, R.color.text_primary))
+      wifiStatusIcon.setImageResource(R.drawable.ic_wifi)
+      wifiStatusIcon.setColorFilter(ContextCompat.getColor(this, R.color.primary))
     } else {
       Log.d(TAG, "Network is Disconnected")
-      wifiIcon.setImageResource(R.drawable.ic_wifi_off)
-      wifiIcon.setColorFilter(ContextCompat.getColor(this, R.color.text_secondary))
-      wifiText.text = "Sin WiFi"
-      wifiText.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
+      wifiStatusIcon.setImageResource(R.drawable.ic_wifi_off)
+      wifiStatusIcon.setColorFilter(ContextCompat.getColor(this, R.color.text_secondary))
     }
   }
 
+  /** Muestra el panel lateral de configuración. */
+  private fun showSettingsPanel() {
+    // Si ya está abierto, no abrir otro
+    if (supportFragmentManager.findFragmentByTag(SETTINGS_PANEL_TAG) != null) {
+      return
+    }
+
+    val panel = SettingsPanelFragment.newInstance(
+      currentVersion = currentVersionName,
+      githubOwner = GITHUB_OWNER,
+      githubRepo = GITHUB_REPO
+    )
+    panel.show(supportFragmentManager, SETTINGS_PANEL_TAG)
+  }
+
   /**
-   * Chequea si hay actualizaciones disponibles. Solo chequea si:
-   * - Hay conexión a internet
-   * - No está en snooze (el usuario dijo "recordarme después")
-   * - Pasó el cooldown desde el último chequeo
+   * Chequea si hay actualizaciones disponibles.
    */
   private fun checkForUpdates() {
-    // Sin internet no chequeamos
     if (!isNetworkAvailable()) {
       Log.d(TAG, "No network, skipping update check")
       return
     }
 
-    // Si el usuario pidió snooze, respetamos
     if (updateRepository.isUpdateSnoozed()) {
       Log.d(TAG, "Update is snoozed, skipping check")
       return
     }
 
-    // Si ya hay un dialog mostrándose, no abrimos otro
     if (supportFragmentManager.findFragmentByTag(UPDATE_DIALOG_TAG) != null) {
       Log.d(TAG, "Update dialog already showing")
       return
     }
 
-    // Chequear si tenemos update cacheado (del chequeo anterior)
     val cachedUpdate = updateRepository.getCachedUpdateInfo()
     if (cachedUpdate != null) {
       Log.d(TAG, "Showing cached update: ${cachedUpdate.versionName}")
@@ -215,7 +294,6 @@ class MainActivity : FragmentActivity() {
       return
     }
 
-    // Respetar cooldown para no abusar de la API
     if (!updateRepository.shouldCheckForUpdates()) {
       Log.d(TAG, "Cooldown active, skipping API call")
       return
@@ -239,7 +317,6 @@ class MainActivity : FragmentActivity() {
           }
           is UpdateCheckResult.Error -> {
             Log.e(TAG, "Update check failed: ${result.message}", result.exception)
-            // No mostramos error al usuario, simplemente no chequeamos
           }
         }
       }
@@ -251,10 +328,9 @@ class MainActivity : FragmentActivity() {
     val dialog = UpdateDialogFragment.newInstance(updateInfo, currentVersionName)
     dialog.show(supportFragmentManager, UPDATE_DIALOG_TAG)
   }
-  
+
   /** Muestra el panel "Sobre el Launcher". */
   private fun showAboutLauncherDialog() {
-    // Si ya hay un dialog abierto, no abrimos otro
     if (supportFragmentManager.findFragmentByTag(ABOUT_DIALOG_TAG) != null) {
       return
     }
@@ -270,7 +346,12 @@ class MainActivity : FragmentActivity() {
   companion object {
     private const val TAG = "MainActivity"
     private const val UPDATE_DIALOG_TAG = "update_dialog"
+    private const val SETTINGS_PANEL_TAG = "settings_panel"
     private const val ABOUT_DIALOG_TAG = "about_launcher_dialog"
+    private const val PERMISSIONS_DIALOG_TAG = "permissions_dialog"
+
+    // Extra para abrir About desde el overlay
+    const val EXTRA_OPEN_ABOUT = "open_about"
 
     // Repositorio de GitHub para actualizaciones
     private const val GITHUB_OWNER = "LautaroDevelopers"
