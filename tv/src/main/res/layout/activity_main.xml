@@ -90,7 +90,7 @@
 
         </LinearLayout>
 
-        <!-- DERECHA: Hora + Fecha + Botones (todo en una fila) -->
+        <!-- DERECHA: Hora/Fecha + WiFi + Botón Settings -->
         <LinearLayout
             android:id="@+id/right_container"
             android:layout_width="wrap_content"
@@ -106,8 +106,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:gravity="end"
-                android:layout_marginEnd="20dp">
+                android:gravity="end">
 
                 <TextClock
                     android:id="@+id/clock_view"
@@ -130,66 +129,27 @@
 
             </LinearLayout>
 
-            <!-- Botón WiFi -->
-            <LinearLayout
+            <!-- Indicador WiFi -->
+            <ImageView
                 android:id="@+id/wifi_status_icon"
-                android:layout_width="wrap_content"
-                android:layout_height="36dp"
-                android:orientation="horizontal"
-                android:gravity="center"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
-                android:background="@drawable/bg_header_button"
-                android:clickable="true"
-                android:focusable="true">
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginStart="16dp"
+                android:src="@drawable/ic_wifi"
+                app:tint="@color/primary" />
 
-                <ImageView
-                    android:id="@+id/wifi_icon"
-                    android:layout_width="18dp"
-                    android:layout_height="18dp"
-                    android:src="@drawable/ic_wifi"
-                    app:tint="@color/primary" />
-
-                <TextView
-                    android:id="@+id/wifi_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="6dp"
-                    android:text="WiFi"
-                    android:textColor="@color/text_primary"
-                    android:textSize="13sp" />
-
-            </LinearLayout>
-
-            <!-- Botón Configuración -->
-            <LinearLayout
+            <!-- Botón Settings (icono circular) -->
+            <ImageView
                 android:id="@+id/settings_button"
-                android:layout_width="wrap_content"
+                android:layout_width="36dp"
                 android:layout_height="36dp"
-                android:layout_marginStart="8dp"
-                android:orientation="horizontal"
-                android:gravity="center"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
-                android:background="@drawable/bg_header_button"
+                android:layout_marginStart="16dp"
+                android:padding="6dp"
+                android:src="@drawable/ic_settings"
+                android:background="@drawable/bg_settings_icon"
                 android:clickable="true"
-                android:focusable="true">
-
-                <ImageView
-                    android:layout_width="18dp"
-                    android:layout_height="18dp"
-                    android:src="@drawable/ic_settings"
-                    app:tint="@color/text_secondary" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="6dp"
-                    android:text="Ajustes"
-                    android:textColor="@color/text_primary"
-                    android:textSize="13sp" />
-
-            </LinearLayout>
+                android:focusable="true"
+                app:tint="@color/text_primary" />
 
         </LinearLayout>
 

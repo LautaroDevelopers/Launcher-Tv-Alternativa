@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
-import android.content.pm.ResolveInfo
 import android.graphics.drawable.Drawable
 import android.util.Log
 import com.televisionalternativa.launcher.AppInfo
@@ -33,20 +32,20 @@ object AppScanner {
   )
 
   /**
-   * Obtiene apps para Android TV como ArrayList<AppInfo>.
-   * Usa LEANBACK_LAUNCHER y carga banners cuando están disponibles.
-   * Este es el método principal para el Launcher de TV.
+   * Obtiene apps para Android TV como ArrayList<AppInfo>. Usa LEANBACK_LAUNCHER y carga banners
+   * cuando están disponibles. Este es el método principal para el Launcher de TV.
    */
   fun getTvApps(context: Context): ArrayList<AppInfo> {
     val pm = context.packageManager
     val apps = ArrayList<AppInfo>()
 
     try {
-      val intent = Intent(Intent.ACTION_MAIN, null).apply { 
-        addCategory(Intent.CATEGORY_LEANBACK_LAUNCHER) 
-      }
+      val intent =
+              Intent(Intent.ACTION_MAIN, null).apply {
+                addCategory(Intent.CATEGORY_LEANBACK_LAUNCHER)
+              }
       val resolveInfoList = pm.queryIntentActivities(intent, 0)
-      
+
       Log.d(TAG, "Total TV apps found by PackageManager: ${resolveInfoList.size}")
 
       for (resolveInfo in resolveInfoList) {
@@ -65,11 +64,12 @@ object AppScanner {
             val appInfoData = AppInfo(packageName = packageName, label = label)
 
             // Preferimos banner para TV, sino usamos el icono normal
-            appInfoData.icon = if (applicationInfo.banner != 0) {
-              pm.getDrawable(packageName, applicationInfo.banner, applicationInfo)
-            } else {
-              resolveInfo.loadIcon(pm)
-            }
+            appInfoData.icon =
+                    if (applicationInfo.banner != 0) {
+                      pm.getDrawable(packageName, applicationInfo.banner, applicationInfo)
+                    } else {
+                      resolveInfo.loadIcon(pm)
+                    }
 
             apps.add(appInfoData)
           }
@@ -82,7 +82,6 @@ object AppScanner {
 
       // Ordenamos alfabéticamente por nombre
       apps.sortBy { it.label.lowercase() }
-      
     } catch (e: Exception) {
       Log.e(TAG, "Error scanning TV apps", e)
     }
@@ -94,19 +93,23 @@ object AppScanner {
   /**
    * Obtiene todas las apps que tienen Launcher (apps que el usuario puede abrir). Filtra apps de
    * sistema que no son útiles.
-   * 
+   *
    * @param launcherType Tipo de launcher (MOBILE o TV)
    */
-  fun getInstalledApps(context: Context, launcherType: LauncherType = LauncherType.MOBILE): List<InstalledApp> {
+  fun getInstalledApps(
+          context: Context,
+          launcherType: LauncherType = LauncherType.MOBILE
+  ): List<InstalledApp> {
     val pm = context.packageManager
     val apps = mutableListOf<InstalledApp>()
 
     try {
-      val category = when (launcherType) {
-        LauncherType.MOBILE -> Intent.CATEGORY_LAUNCHER
-        LauncherType.TV -> Intent.CATEGORY_LEANBACK_LAUNCHER
-      }
-      
+      val category =
+              when (launcherType) {
+                LauncherType.MOBILE -> Intent.CATEGORY_LAUNCHER
+                LauncherType.TV -> Intent.CATEGORY_LEANBACK_LAUNCHER
+              }
+
       val intent = Intent(Intent.ACTION_MAIN, null).apply { addCategory(category) }
       val resolveInfoList = pm.queryIntentActivities(intent, PackageManager.MATCH_ALL)
 

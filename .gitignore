@@ -13,3 +13,5 @@
 .externalNativeBuild
 .cxx
 local.properties
+tv-alternativa-release.jks
+keystore.properties

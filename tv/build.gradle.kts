@@ -7,6 +7,15 @@ android {
     namespace = "com.televisionalternativa.launcher"
     compileSdk = 35
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("../tv-alternativa-release.jks")
+            storePassword = "Telev#Alter26#"
+            keyAlias = "tv-alternativa"
+            keyPassword = "Telev#Alter26#"
+        }
+    }
+
     defaultConfig {
         applicationId = "com.televisionalternativa.launcher"
         minSdk = 21
@@ -19,6 +28,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
