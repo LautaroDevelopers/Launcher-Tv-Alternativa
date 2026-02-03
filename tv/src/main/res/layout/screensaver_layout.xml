@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+    <!-- Imagen de fondo 1 (para crossfade) -->
+    <ImageView
+        android:id="@+id/background_image_1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:alpha="1" />
+
+    <!-- Imagen de fondo 2 (para crossfade) -->
+    <ImageView
+        android:id="@+id/background_image_2"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:alpha="0" />
+
+    <!-- Gradiente oscuro en la parte inferior para legibilidad -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_gravity="bottom"
+        android:background="@drawable/bg_screensaver_gradient" />
+
+    <!-- Container de información (esquina inferior derecha) -->
+    <LinearLayout
+        android:id="@+id/info_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="48dp"
+        android:layout_marginBottom="48dp"
+        android:orientation="vertical"
+        android:gravity="end">
+
+        <!-- Reloj grande -->
+        <TextView
+            android:id="@+id/screensaver_clock"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#FFFFFF"
+            android:textSize="72sp"
+            android:fontFamily="sans-serif-light"
+            android:shadowColor="#80000000"
+            android:shadowDx="2"
+            android:shadowDy="2"
+            android:shadowRadius="4"
+            tools:text="21:45" />
+
+        <!-- Fecha -->
+        <TextView
+            android:id="@+id/screensaver_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="#E0FFFFFF"
+            android:textSize="20sp"
+            android:fontFamily="sans-serif"
+            android:shadowColor="#80000000"
+            android:shadowDx="1"
+            android:shadowDy="1"
+            android:shadowRadius="3"
+            tools:text="Lunes, 3 de febrero" />
+
+        <!-- Clima -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="16dp">
+
+            <ImageView
+                android:id="@+id/screensaver_weather_icon"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:visibility="gone"
+                tools:src="@drawable/ic_weather_sunny"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/screensaver_temperature"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:textColor="#FFFFFF"
+                android:textSize="28sp"
+                android:fontFamily="sans-serif-light"
+                android:shadowColor="#80000000"
+                android:shadowDx="1"
+                android:shadowDy="1"
+                android:shadowRadius="3"
+                android:visibility="gone"
+                tools:text="22°"
+                tools:visibility="visible" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</FrameLayout>

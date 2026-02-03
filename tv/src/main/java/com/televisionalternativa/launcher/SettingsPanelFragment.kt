@@ -5,7 +5,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.provider.Settings
-import android.view.KeyEvent
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,15 +14,17 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
+import com.televisionalternativa.launcher.screensaver.ScreensaverHelper
 import com.televisionalternativa.launcher.update.AboutLauncherDialogFragment
 
 /**
  * Panel lateral de configuración rápida.
- * Se abre con el botón Settings del control remoto.
+ * Se abre con el botón Settings del control remoto o desde el header.
  */
 class SettingsPanelFragment : DialogFragment() {
 
     private lateinit var optionWifi: LinearLayout
+    private lateinit var optionScreensaver: LinearLayout
     private lateinit var optionAbout: LinearLayout
     private lateinit var wifiIcon: ImageView
     private lateinit var wifiStatusText: TextView
@@ -69,6 +71,7 @@ class SettingsPanelFragment : DialogFragment() {
 
         // Bind views
         optionWifi = view.findViewById(R.id.option_wifi)
+        optionScreensaver = view.findViewById(R.id.option_screensaver)
         optionAbout = view.findViewById(R.id.option_about)
         wifiIcon = view.findViewById(R.id.wifi_icon)
         wifiStatusText = view.findViewById(R.id.wifi_status_text)
@@ -83,6 +86,10 @@ class SettingsPanelFragment : DialogFragment() {
         // Click listeners
         optionWifi.setOnClickListener {
             openSettings(Settings.ACTION_WIFI_SETTINGS)
+        }
+
+        optionScreensaver.setOnClickListener {
+            startScreensaver()
         }
 
         optionAbout.setOnClickListener {
@@ -153,6 +160,12 @@ class SettingsPanelFragment : DialogFragment() {
                 // No hay settings disponibles
             }
         }
+    }
+
+    private fun startScreensaver() {
+        Log.d(TAG, "Starting screensaver")
+        dismiss()
+        ScreensaverHelper.startScreensaver(requireContext())
     }
 
     private fun showAboutDialog() {

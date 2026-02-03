@@ -10,6 +10,8 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import android.view.KeyEvent
@@ -20,9 +22,11 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
 import com.televisionalternativa.launcher.data.AppScanner
 import com.televisionalternativa.launcher.permissions.PermissionsDialogFragment
+import com.televisionalternativa.launcher.screensaver.ScreensaverHelper
 import com.televisionalternativa.launcher.update.AboutLauncherDialogFragment
 import com.televisionalternativa.launcher.update.UpdateCheckResult
 import com.televisionalternativa.launcher.update.UpdateChecker
@@ -53,6 +57,18 @@ class MainActivity : FragmentActivity() {
   private lateinit var updateChecker: UpdateChecker
   private lateinit var updateRepository: UpdateRepository
   private var currentVersionName: String = "1.0.0"
+
+  // Timer de inactividad para screensaver
+  private val inactivityHandler = Handler(Looper.getMainLooper())
+  private val INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000L // 5 minutos
+  
+  private val startScreensaverRunnable = Runnable {
+    // Solo iniciar si no hay dialogs abiertos
+    if (!hasOpenDialogs()) {
+      Log.d(TAG, "Inactivity timeout reached, starting screensaver")
+      startScreensaver()
+    }
+  }
 
   /**
    * NetworkCallback moderno (API 21+) - reemplaza el BroadcastReceiver deprecado.
@@ -162,6 +178,9 @@ class MainActivity : FragmentActivity() {
 
     // Chequear actualizaciones
     checkForUpdates()
+
+    // Iniciar timer de inactividad para screensaver
+    resetInactivityTimer()
   }
 
   override fun onNewIntent(intent: Intent?) {
@@ -228,6 +247,9 @@ class MainActivity : FragmentActivity() {
   override fun onPause() {
     super.onPause()
     connectivityManager.unregisterNetworkCallback(networkCallback)
+    
+    // Cancelar timer - si hay otra app corriendo, no queremos screensaver
+    cancelInactivityTimer()
   }
 
   /**
@@ -238,6 +260,9 @@ class MainActivity : FragmentActivity() {
     if (event.action == KeyEvent.ACTION_DOWN) {
       Log.d(TAG, "dispatchKeyEvent: keyCode=${event.keyCode}, scanCode=${event.scanCode}")
       
+      // Reset del timer de inactividad en cada tecla
+      resetInactivityTimer()
+      
       // Botón TV_INPUT (178) abre el panel
       if (event.keyCode == KeyEvent.KEYCODE_TV_INPUT) {
         showSettingsPanel()
@@ -245,6 +270,57 @@ class MainActivity : FragmentActivity() {
       }
     }
     return super.dispatchKeyEvent(event)
+  }
+
+  /**
+   * Maneja el botón BACK.
+   * Si estamos en el inicio del launcher (sin dialogs abiertos), abre el screensaver.
+   */
+  @Deprecated("Deprecated in Java")
+  override fun onBackPressed() {
+    if (hasOpenDialogs()) {
+      // Dejar que el dialog maneje el BACK
+      super.onBackPressed()
+    } else {
+      // Estamos en el inicio del launcher, abrir screensaver
+      Log.d(TAG, "BACK pressed at home, starting screensaver")
+      cancelInactivityTimer() // No necesitamos el timer si ya iniciamos
+      startScreensaver()
+    }
+  }
+
+  /**
+   * Inicia el screensaver usando el helper.
+   */
+  private fun startScreensaver() {
+    Log.d(TAG, "Starting screensaver")
+    ScreensaverHelper.startScreensaver(this)
+  }
+
+  /**
+   * Verifica si hay algún dialog abierto.
+   */
+  private fun hasOpenDialogs(): Boolean {
+    return supportFragmentManager.fragments.any { 
+      it is DialogFragment && it.isVisible 
+    }
+  }
+
+  /**
+   * Reinicia el timer de inactividad.
+   * Se llama en cada interacción del usuario.
+   */
+  private fun resetInactivityTimer() {
+    inactivityHandler.removeCallbacks(startScreensaverRunnable)
+    inactivityHandler.postDelayed(startScreensaverRunnable, INACTIVITY_TIMEOUT_MS)
+  }
+
+  /**
+   * Cancela el timer de inactividad.
+   * Se llama cuando salimos del launcher (onPause).
+   */
+  private fun cancelInactivityTimer() {
+    inactivityHandler.removeCallbacks(startScreensaverRunnable)
   }
 
   /**

@@ -1,0 +1,14 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Monitor/TV -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M21,3H3C1.9,3 1,3.9 1,5v12c0,1.1 0.9,2 2,2h5v2h8v-2h5c1.1,0 2,-0.9 2,-2V5C23,3.9 22.1,3 21,3zM21,17H3V5h18V17z"/>
+    <!-- Moon/Night icon -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M12.5,7c-2.5,0 -4.5,2 -4.5,4.5c0,2.5 2,4.5 4.5,4.5c0.9,0 1.7,-0.3 2.4,-0.7c-1.8,-0.4 -3.2,-2 -3.2,-4c0,-1.9 1.3,-3.5 3.1,-3.9C14.1,7.2 13.4,7 12.5,7z"/>
+</vector>

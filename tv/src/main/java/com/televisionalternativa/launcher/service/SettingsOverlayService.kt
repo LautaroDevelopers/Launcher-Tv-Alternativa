@@ -19,6 +19,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import com.televisionalternativa.launcher.R
+import com.televisionalternativa.launcher.screensaver.ScreensaverHelper
 
 /**
  * Service que muestra el panel de configuración como overlay
@@ -158,6 +159,10 @@ class SettingsOverlayService : Service() {
             hideOverlay()
         }
 
+        view.findViewById<LinearLayout>(R.id.option_screensaver)?.setOnClickListener {
+            startScreensaver()
+        }
+
         // Manejar tecla BACK
         view.isFocusableInTouchMode = true
         view.requestFocus()
@@ -204,6 +209,12 @@ class SettingsOverlayService : Service() {
                 Log.e(TAG, "Could not open settings", e2)
             }
         }
+    }
+
+    private fun startScreensaver() {
+        Log.d(TAG, "Starting screensaver")
+        hideOverlay()
+        ScreensaverHelper.startScreensaver(this)
     }
 
     private fun hideOverlay() {

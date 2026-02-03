@@ -94,5 +94,24 @@
             android:name=".service.SettingsOverlayService"
             android:exported="false" />
         
+        <!-- DreamService (Screensaver) - Solo para activación automática del sistema -->
+        <service
+            android:name=".screensaver.ScreensaverService"
+            android:permission="android.permission.BIND_DREAM_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.dreams.DreamService" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <meta-data
+                android:name="android.service.dream"
+                android:resource="@xml/screensaver_config" />
+        </service>
+        
+        <!-- Screensaver Overlay - Para iniciar manualmente desde el launcher -->
+        <service
+            android:name=".screensaver.ScreensaverOverlayService"
+            android:exported="false" />
+        
     </application>
 </manifest>
