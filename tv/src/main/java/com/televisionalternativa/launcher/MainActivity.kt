@@ -1,8 +1,10 @@
 package com.televisionalternativa.launcher
 
 import android.accessibilityservice.AccessibilityServiceInfo
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
@@ -16,6 +18,7 @@ import android.view.accessibility.AccessibilityManager
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import com.televisionalternativa.launcher.data.AppScanner
@@ -25,6 +28,9 @@ import com.televisionalternativa.launcher.update.UpdateCheckResult
 import com.televisionalternativa.launcher.update.UpdateChecker
 import com.televisionalternativa.launcher.update.UpdateDialogFragment
 import com.televisionalternativa.launcher.update.UpdateRepository
+import com.televisionalternativa.launcher.weather.LocationHelper
+import com.televisionalternativa.launcher.weather.WeatherData
+import com.televisionalternativa.launcher.weather.WeatherRepository
 
 /** Loads [MainFragment]. */
 class MainActivity : FragmentActivity() {
@@ -33,6 +39,13 @@ class MainActivity : FragmentActivity() {
   private lateinit var settingsButton: ImageView
   private lateinit var systemInfoChip: LinearLayout
   private lateinit var versionTextView: TextView
+
+  // Widget de clima
+  private lateinit var weatherContainer: LinearLayout
+  private lateinit var weatherIcon: ImageView
+  private lateinit var weatherTemp: TextView
+  private lateinit var locationHelper: LocationHelper
+  private lateinit var weatherRepository: WeatherRepository
 
   private lateinit var connectivityManager: ConnectivityManager
 
@@ -84,6 +97,15 @@ class MainActivity : FragmentActivity() {
     systemInfoChip = findViewById(R.id.system_info_chip)
     versionTextView = findViewById(R.id.version_text)
 
+    // Bindear views del clima
+    weatherContainer = findViewById(R.id.weather_container)
+    weatherIcon = findViewById(R.id.weather_icon)
+    weatherTemp = findViewById(R.id.weather_temp)
+
+    // Inicializar helpers de clima
+    locationHelper = LocationHelper(this)
+    weatherRepository = WeatherRepository()
+
     // Mostrar versión
     try {
       val pInfo = packageManager.getPackageInfo(packageName, 0)
@@ -134,6 +156,9 @@ class MainActivity : FragmentActivity() {
 
     // Chequear permisos necesarios para el overlay global
     checkAndRequestPermissions()
+
+    // Cargar clima
+    loadWeather()
 
     // Chequear actualizaciones
     checkForUpdates()
@@ -208,6 +233,7 @@ class MainActivity : FragmentActivity() {
   /**
    * Intercepta TODAS las teclas antes de que lleguen a los views.
    */
+  @Suppress("RestrictedApi")
   override fun dispatchKeyEvent(event: KeyEvent): Boolean {
     if (event.action == KeyEvent.ACTION_DOWN) {
       Log.d(TAG, "dispatchKeyEvent: keyCode=${event.keyCode}, scanCode=${event.scanCode}")
@@ -343,12 +369,120 @@ class MainActivity : FragmentActivity() {
     dialog.show(supportFragmentManager, ABOUT_DIALOG_TAG)
   }
 
+  // ==================== CLIMA ====================
+
+  /**
+   * Carga el clima actual.
+   * Primero pide permisos de ubicación si no los tiene.
+   */
+  private fun loadWeather() {
+    if (!locationHelper.hasLocationPermission()) {
+      Log.d(TAG, "No location permission, requesting...")
+      requestLocationPermission()
+      return
+    }
+
+    if (!isNetworkAvailable()) {
+      Log.d(TAG, "No network, skipping weather")
+      return
+    }
+
+    // Intentar con ubicación cacheada primero
+    val cachedLocation = locationHelper.getLastKnownLocation()
+    if (cachedLocation != null) {
+      fetchWeather(cachedLocation.latitude, cachedLocation.longitude)
+    } else {
+      // Solicitar nueva ubicación
+      locationHelper.requestLocationUpdate { location ->
+        if (location != null) {
+          runOnUiThread {
+            fetchWeather(location.latitude, location.longitude)
+          }
+        } else {
+          Log.w(TAG, "Could not get location for weather")
+        }
+      }
+    }
+  }
+
+  /**
+   * Obtiene el clima para las coordenadas dadas.
+   */
+  private fun fetchWeather(latitude: Double, longitude: Double) {
+    Log.d(TAG, "Fetching weather for: $latitude, $longitude")
+
+    weatherRepository.getWeather(latitude, longitude) { weather ->
+      runOnUiThread {
+        if (weather != null) {
+          updateWeatherUI(weather)
+        } else {
+          Log.w(TAG, "Could not fetch weather")
+        }
+      }
+    }
+  }
+
+  /**
+   * Actualiza la UI con los datos del clima.
+   */
+  private fun updateWeatherUI(weather: WeatherData) {
+    Log.d(TAG, "Updating weather UI: ${weather.temperature}° - ${weather.description}")
+
+    weatherContainer.visibility = View.VISIBLE
+    weatherTemp.text = weather.getTemperatureString()
+
+    // Obtener el recurso del icono por nombre
+    val iconResId = resources.getIdentifier(
+      weather.iconRes,
+      "drawable",
+      packageName
+    )
+
+    if (iconResId != 0) {
+      weatherIcon.setImageResource(iconResId)
+    } else {
+      weatherIcon.setImageResource(R.drawable.ic_weather_sunny)
+    }
+  }
+
+  /**
+   * Solicita permisos de ubicación.
+   */
+  private fun requestLocationPermission() {
+    ActivityCompat.requestPermissions(
+      this,
+      arrayOf(
+        Manifest.permission.ACCESS_FINE_LOCATION,
+        Manifest.permission.ACCESS_COARSE_LOCATION
+      ),
+      LOCATION_PERMISSION_REQUEST_CODE
+    )
+  }
+
+  override fun onRequestPermissionsResult(
+    requestCode: Int,
+    permissions: Array<out String>,
+    grantResults: IntArray
+  ) {
+    super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+    if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+      if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+        Log.d(TAG, "Location permission granted")
+        loadWeather()
+      } else {
+        Log.w(TAG, "Location permission denied")
+      }
+    }
+  }
+
   companion object {
     private const val TAG = "MainActivity"
     private const val UPDATE_DIALOG_TAG = "update_dialog"
     private const val SETTINGS_PANEL_TAG = "settings_panel"
     private const val ABOUT_DIALOG_TAG = "about_launcher_dialog"
     private const val PERMISSIONS_DIALOG_TAG = "permissions_dialog"
+    private const val LOCATION_PERMISSION_REQUEST_CODE = 1001
 
     // Extra para abrir About desde el overlay
     const val EXTRA_OPEN_ABOUT = "open_about"

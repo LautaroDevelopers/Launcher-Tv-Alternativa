@@ -17,6 +17,10 @@
     
     <!-- Para el servicio en foreground (opcional pero recomendado) -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    
+    <!-- Para obtener ubicación y mostrar el clima -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <uses-feature
         android:name="android.hardware.touchscreen"
@@ -27,6 +31,10 @@
     <!-- Bluetooth es OPCIONAL - muchos TV Box no lo tienen -->
     <uses-feature
         android:name="android.hardware.bluetooth"
+        android:required="false" />
+    <!-- GPS es OPCIONAL - para el widget de clima -->
+    <uses-feature
+        android:name="android.hardware.location.gps"
         android:required="false" />
 
     <application

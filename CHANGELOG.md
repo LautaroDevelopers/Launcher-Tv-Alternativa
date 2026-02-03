@@ -6,6 +6,26 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [1.2.0] - 2026-02-03
+
+### Agregado
+- **Widget de Clima**: Muestra temperatura actual e icono del clima en el header
+- Ubicación por GPS para obtener clima preciso
+- 10 iconos de clima (soleado, nublado, lluvia, nieve, tormenta, etc.)
+- Cache de clima de 15 minutos para optimizar llamadas a la API
+
+### Técnico
+- Integración con Open-Meteo API (gratis, sin API key)
+- `LocationHelper` para obtener coordenadas GPS
+- `WeatherRepository` para consultar y cachear datos del clima
+- `minSdk` subido a 23 (Android 6.0+) para compatibilidad con APIs modernas
+
+### Corregido
+- Errores de lint por APIs que requerían SDK 23+
+- Fix en `RequestUsageStatsActivity` para compatibilidad con API < 29
+
+---
+
 ## [1.1.0] - 2026-02-02
 
 ### Agregado

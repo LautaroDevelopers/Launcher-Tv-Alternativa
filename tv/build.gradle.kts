@@ -18,10 +18,10 @@ android {
 
     defaultConfig {
         applicationId = "com.televisionalternativa.launcher"
-        minSdk = 21
+        minSdk = 23  // Android 6.0+ (requerido para overlay y APIs modernas)
         targetSdk = 35
-        versionCode = 4
-        versionName = "1.1.2"
+        versionCode = 5
+        versionName = "1.2.0"
 
     }
 
