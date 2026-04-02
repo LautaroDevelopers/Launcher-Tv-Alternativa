@@ -6,6 +6,37 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [1.3.1] - 2026-04-02
+
+### Corregido
+- **Bug permisos fantasma**: Modal de permisos aparecía después de suspensión aunque los permisos estuvieran otorgados
+  - Agregado delay de 500ms para dar tiempo a AccessibilityService a reactivarse
+- **Bug iconos en negro**: Iconos de apps se mostraban en negro después de suspensión prolongada
+  - Validación automática y recarga de iconos corruptos en `onResume()`
+- **Seguridad**: Credenciales de firma removidas del código fuente
+  - Migradas a `keystore.properties` local (no trackeado por git)
+  - Soporte para variables de entorno en CI/CD
+
+### Técnico
+- Delay en validación de permisos para evitar race conditions
+- Validación de referencias de `Drawable` invalidadas por suspensión del sistema
+- Refactor de configuración de signing para mejorar seguridad
+
+---
+
+## [1.3.0] - 2026-02-22
+
+### Agregado
+- **Screensaver**: Slideshow de fotos con timer de inactividad de 5 minutos
+- DreamService para activación automática del sistema
+- Overlay manual para iniciar screensaver desde el launcher
+
+### Técnico
+- Timer de inactividad configurable en MainActivity
+- ScreensaverHelper para coordinación entre DreamService y overlay
+
+---
+
 ## [1.2.0] - 2026-02-03
 
 ### Agregado

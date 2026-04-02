@@ -173,6 +173,9 @@ class MainActivity : FragmentActivity() {
     // Chequear permisos necesarios para el overlay global
     checkAndRequestPermissions()
 
+    // Validar y refrescar iconos de apps si están corruptos
+    validateAndRefreshAppsIfNeeded()
+
     // Cargar clima
     loadWeather()
 
@@ -205,21 +208,25 @@ class MainActivity : FragmentActivity() {
   /**
    * Chequea si tiene los permisos necesarios para el overlay global.
    * Si no los tiene, muestra el modal obligatorio.
+   * Se ejecuta con delay de 500ms para dar tiempo a AccessibilityService
+   * después de suspensión del TV box.
    */
   private fun checkAndRequestPermissions() {
-    val hasOverlayPermission = Settings.canDrawOverlays(this)
-    val hasAccessibilityPermission = isAccessibilityServiceEnabled()
+    Handler(Looper.getMainLooper()).postDelayed({
+      val hasOverlayPermission = Settings.canDrawOverlays(this)
+      val hasAccessibilityPermission = isAccessibilityServiceEnabled()
 
-    Log.d(TAG, "Permissions check - Overlay: $hasOverlayPermission, Accessibility: $hasAccessibilityPermission")
+      Log.d(TAG, "Permissions check - Overlay: $hasOverlayPermission, Accessibility: $hasAccessibilityPermission")
 
-    if (!hasOverlayPermission || !hasAccessibilityPermission) {
-      // Solo mostrar si no está ya visible
-      if (supportFragmentManager.findFragmentByTag(PERMISSIONS_DIALOG_TAG) == null) {
-        Log.d(TAG, "Showing permissions dialog")
-        val dialog = PermissionsDialogFragment.newInstance()
-        dialog.show(supportFragmentManager, PERMISSIONS_DIALOG_TAG)
+      if (!hasOverlayPermission || !hasAccessibilityPermission) {
+        // Solo mostrar si no está ya visible
+        if (supportFragmentManager.findFragmentByTag(PERMISSIONS_DIALOG_TAG) == null) {
+          Log.d(TAG, "Showing permissions dialog")
+          val dialog = PermissionsDialogFragment.newInstance()
+          dialog.show(supportFragmentManager, PERMISSIONS_DIALOG_TAG)
+        }
       }
-    }
+    }, 500)
   }
 
   /**
@@ -242,6 +249,34 @@ class MainActivity : FragmentActivity() {
     
     Log.d(TAG, "AccessibilityService is NOT enabled")
     return false
+  }
+
+  /**
+   * Valida si los iconos de las apps están intactos después de suspensión.
+   * Si algún icono es null (Drawables invalidadas por Android), recarga las apps.
+   */
+  private fun validateAndRefreshAppsIfNeeded() {
+    val fragment = supportFragmentManager.findFragmentById(R.id.rows_container) as? MainFragment
+    if (fragment == null) {
+      Log.d(TAG, "MainFragment not yet available, skipping validation")
+      return
+    }
+
+    val currentApps = fragment.getApps()
+    if (currentApps == null || currentApps.isEmpty()) {
+      Log.d(TAG, "No apps to validate")
+      return
+    }
+
+    val hasCorruptedIcons = currentApps.any { it.icon == null }
+    if (hasCorruptedIcons) {
+      Log.w(TAG, "Found ${currentApps.count { it.icon == null }} corrupted app icons, refreshing...")
+      val freshApps = AppScanner.getTvApps(this)
+      fragment.updateApps(freshApps)
+      Log.d(TAG, "Refreshed ${freshApps.size} apps")
+    } else {
+      Log.d(TAG, "All ${currentApps.size} app icons valid")
+    }
   }
 
   override fun onPause() {

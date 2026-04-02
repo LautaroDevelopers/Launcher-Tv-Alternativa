@@ -117,6 +117,21 @@ class MainFragment : RowsSupportFragment() {
         Log.d(TAG, "Adapter set with ${rowsAdapter.size()} rows")
     }
 
+    /**
+     * Retorna la lista actual de apps.
+     * Usado por MainActivity para validar iconos después de suspensión.
+     */
+    fun getApps(): ArrayList<AppInfo>? = apps
+
+    /**
+     * Actualiza la lista de apps y refresca el adapter.
+     * Usado cuando los iconos están corruptos (null) después de suspensión.
+     */
+    fun updateApps(newApps: ArrayList<AppInfo>) {
+        apps = newApps
+        loadRows()
+    }
+
     private inner class ItemViewClickedListener : OnItemViewClickedListener {
         override fun onItemClicked(
             itemViewHolder: Presenter.ViewHolder,

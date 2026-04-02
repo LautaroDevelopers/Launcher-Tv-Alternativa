@@ -15,3 +15,5 @@
 local.properties
 tv-alternativa-release.jks
 keystore.properties
+*.db
+kls_database.db

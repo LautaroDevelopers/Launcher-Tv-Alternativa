@@ -7,21 +7,35 @@ android {
     namespace = "com.televisionalternativa.launcher"
     compileSdk = 35
 
-    signingConfigs {
-        create("release") {
+// SECURITY: Signing credentials are stored in keystore.properties (not tracked by git)
+// or environment variables for CI/CD. Never commit passwords to version control.
+signingConfigs {
+    create("release") {
+        val keystorePropertiesFile = rootProject.file("keystore.properties")
+        if (keystorePropertiesFile.exists()) {
+            val keystoreProperties = java.util.Properties()
+            keystoreProperties.load(java.io.FileInputStream(keystorePropertiesFile))
+            
+            storeFile = file(keystoreProperties["storeFile"] ?: "../tv-alternativa-release.jks")
+            storePassword = keystoreProperties["storePassword"] as String?
+            keyAlias = keystoreProperties["keyAlias"] as String?
+            keyPassword = keystoreProperties["keyPassword"] as String?
+        } else {
+            // Fallback para CI/CD o cuando no hay keystore.properties
             storeFile = file("../tv-alternativa-release.jks")
-            storePassword = "Telev#Alter26#"
-            keyAlias = "tv-alternativa"
-            keyPassword = "Telev#Alter26#"
+            storePassword = System.getenv("KEYSTORE_PASSWORD")
+            keyAlias = System.getenv("KEY_ALIAS")
+            keyPassword = System.getenv("KEY_PASSWORD")
         }
     }
+}
 
     defaultConfig {
         applicationId = "com.televisionalternativa.launcher"
         minSdk = 23  // Android 6.0+ (requerido para overlay y APIs modernas)
         targetSdk = 35
-        versionCode = 6
-        versionName = "1.3.0"
+        versionCode = 7
+        versionName = "1.3.1"
 
     }
 
