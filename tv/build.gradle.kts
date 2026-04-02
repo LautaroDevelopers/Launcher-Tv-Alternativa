@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.parcelize)
@@ -13,10 +16,10 @@ signingConfigs {
     create("release") {
         val keystorePropertiesFile = rootProject.file("keystore.properties")
         if (keystorePropertiesFile.exists()) {
-            val keystoreProperties = java.util.Properties()
-            keystoreProperties.load(java.io.FileInputStream(keystorePropertiesFile))
+            val keystoreProperties = Properties()
+            keystoreProperties.load(FileInputStream(keystorePropertiesFile))
             
-            storeFile = file(keystoreProperties["storeFile"] ?: "../tv-alternativa-release.jks")
+            storeFile = rootProject.file(keystoreProperties["storeFile"] as String)
             storePassword = keystoreProperties["storePassword"] as String?
             keyAlias = keystoreProperties["keyAlias"] as String?
             keyPassword = keystoreProperties["keyPassword"] as String?
